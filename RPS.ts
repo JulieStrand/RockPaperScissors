@@ -1,4 +1,4 @@
-  // Canvas and Context Creation
+// Canvas and Context Creation
 const canvas: HTMLCanvasElement = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
 const fontSize = 30; 
@@ -56,14 +56,6 @@ if (ctx) {
   }
 }
 
-   // Ensure minimum velocity for dx and dy
-    if (Math.abs(items[items.length - 1].dx) < 0.5) {
-      items[items.length - 1].dx = (items[items.length - 1].dx < 0 ? -1 : 1) * 0.5;
-    }
-    if (Math.abs(items[items.length - 1].dy) < 0.5) {
-      items[items.length - 1].dy = (items[items.length - 1].dy < 0 ? -1 : 1) * 0.5;
-    }
-  
   gameLoop(ctx);
 
 } else {
