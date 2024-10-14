@@ -14,7 +14,12 @@ interface Item {
   dy: number;
 }
 
-const emojis: string[] = ['🪨', '📜', '✌️'];
+const emojis: string[] = ['🪨', '📜', '✂️'];
+const emojiMap = new Map<ItemType, string>([
+  ['rock', emojis[0]],
+  ['paper', emojis[1]],
+  ['scissors', emojis[2]]
+]);
 const items: Item[] = [];
 
 if (ctx) {
@@ -26,42 +31,38 @@ if (ctx) {
   canvas.style.left = '50%';
   canvas.style.transform = 'translate(-50%, -50%)';
 
-  // Create emojis
+  // Emoji factory
   for (let i = 0; i < 15; i++) {
-    items.push({ 
-      type: 'rock', 
-      emoji: emojis[0], 
-      x: Math.random() * canvas.width, 
-      y: Math.random() * canvas.height, 
-      dx: Math.random() * 4 - 2, 
-      dy: Math.random() * 4 - 2 
-    });
-    items.push({ 
-      type: 'paper', 
-      emoji: emojis[1], 
-      x: Math.random() * canvas.width, 
-      y: Math.random() * canvas.height, 
-      dx: Math.random() * 4 - 2, 
-      dy: Math.random() * 4 - 2 
-    });
+  for (const [type, emoji] of emojiMap.entries()) {
+    let dx = Math.random() * 4 - 2;
+    let dy = Math.random() * 4 - 2;
 
     // Ensure minimum velocity for dx and dy
+    if (Math.abs(dx) < 0.5) {
+      dx = (dx < 0 ? -1 : 1) * 0.5;
+    }
+    if (Math.abs(dy) < 0.5) {
+      dy = (dy < 0 ? -1 : 1) * 0.5;
+    }
+
+    items.push({
+      type,
+      emoji,
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      dx,
+      dy
+    });
+  }
+}
+
+   // Ensure minimum velocity for dx and dy
     if (Math.abs(items[items.length - 1].dx) < 0.5) {
       items[items.length - 1].dx = (items[items.length - 1].dx < 0 ? -1 : 1) * 0.5;
     }
     if (Math.abs(items[items.length - 1].dy) < 0.5) {
       items[items.length - 1].dy = (items[items.length - 1].dy < 0 ? -1 : 1) * 0.5;
     }
-
-    items.push({ 
-      type: 'scissors', 
-      emoji: emojis[2], 
-      x: Math.random() * canvas.width, 
-      y: Math.random() * canvas.height, 
-      dx: Math.random() * 4 - 2, 
-      dy: Math.random() * 4 - 2 
-    });
-  }
   
   gameLoop(ctx);
 
@@ -72,7 +73,7 @@ if (ctx) {
 // Helper Functions
 function drawItems(ctx: CanvasRenderingContext2D): void {
   ctx.font = `${fontSize}px Arial`;
-  ctx.textBaseline = 'top'; // Add this line to set the baseline to 'top'
+  ctx.textBaseline = 'top';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   items.forEach((item) => {
     ctx.fillText(item.emoji, item.x, item.y);
@@ -101,14 +102,14 @@ function updatePositions(ctx: CanvasRenderingContext2D): void {
 
     // Bounce off walls
     if (item.x <= 0) {
-      item.x = 0; // Adjust to stay within bounds
+      item.x = 0; 
       item.dx *= -1;
     } else if (item.x + fontSize >= canvas.width) {
       item.x = canvas.width - fontSize; // Adjust to stay within bounds
       item.dx *= -1;
     }
-    if (item.y <= 0) {
-      item.y = 0; // Adjust to stay within bounds
+    if (item.y <= 0)  {
+      item.y = 0; 
       item.dy *= -1;
     } else if (item.y + fontSize >= canvas.height) {
       item.y = canvas.height - fontSize; // Adjust to stay within bounds
@@ -123,7 +124,7 @@ function checkCollisions(): void {
       const item1 = items[i];
       const item2 = items[j];
       const distance = Math.sqrt(Math.pow(item1.x - item2.x, 2) + Math.pow(item1.y - item2.y, 2));
-      if (distance < 30) { // Collision detected
+      if (distance < fontSize) { // Collision detected
         if (item1.type !== item2.type) {
           const winner = determineWinner(item1, item2);
           if (winner !== 'tie') {
@@ -140,7 +141,7 @@ function checkCollisions(): void {
          item2.dy = -item2.dy + (Math.random() - 0.5) * 0.5;
 
           // Apply minimum separation force
-          const overlap = 30 - distance; // How much they overlap
+          const overlap = fontSize - distance; // How much they overlap
           const pushX = (item1.x - item2.x) / distance * overlap / 2;
           const pushY = (item1.y - item2.y) / distance * overlap / 2;
           item1.x += pushX;
@@ -162,7 +163,6 @@ function checkForWinner(): string | null {
   return null;
 }
 
-// Main Game Loop Function
 function gameLoop(ctx: CanvasRenderingContext2D): void {
   updatePositions(ctx);
   checkCollisions();

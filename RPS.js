@@ -1,9 +1,15 @@
+"use strict";
 // Canvas and Context Creation
-var canvas = document.createElement('canvas');
-var ctx = canvas.getContext('2d');
-var fontSize = 30;
-var emojis = ['🪨', '📜', '✌️'];
-var items = [];
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+const fontSize = 30;
+const emojis = ['🪨', '📜', '✂️'];
+const emojiMap = new Map([
+    ['rock', emojis[0]],
+    ['paper', emojis[1]],
+    ['scissors', emojis[2]]
+]);
+const items = [];
 if (ctx) {
     document.body.appendChild(canvas);
     canvas.width = 500;
@@ -12,39 +18,34 @@ if (ctx) {
     canvas.style.top = '50%';
     canvas.style.left = '50%';
     canvas.style.transform = 'translate(-50%, -50%)';
-    // Create emojis
-    for (var i = 0; i < 15; i++) {
-        items.push({
-            type: 'rock',
-            emoji: emojis[0],
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            dx: Math.random() * 4 - 2,
-            dy: Math.random() * 4 - 2
-        });
-        items.push({
-            type: 'paper',
-            emoji: emojis[1],
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            dx: Math.random() * 4 - 2,
-            dy: Math.random() * 4 - 2
-        });
-        // Ensure minimum velocity for dx and dy
-        if (Math.abs(items[items.length - 1].dx) < 0.5) {
-            items[items.length - 1].dx = (items[items.length - 1].dx < 0 ? -1 : 1) * 0.5;
+    // Emoji factory
+    for (let i = 0; i < 15; i++) {
+        for (const [type, emoji] of emojiMap.entries()) {
+            let dx = Math.random() * 4 - 2;
+            let dy = Math.random() * 4 - 2;
+            // Ensure minimum velocity for dx and dy
+            if (Math.abs(dx) < 0.5) {
+                dx = (dx < 0 ? -1 : 1) * 0.5;
+            }
+            if (Math.abs(dy) < 0.5) {
+                dy = (dy < 0 ? -1 : 1) * 0.5;
+            }
+            items.push({
+                type,
+                emoji,
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                dx,
+                dy
+            });
         }
-        if (Math.abs(items[items.length - 1].dy) < 0.5) {
-            items[items.length - 1].dy = (items[items.length - 1].dy < 0 ? -1 : 1) * 0.5;
-        }
-        items.push({
-            type: 'scissors',
-            emoji: emojis[2],
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            dx: Math.random() * 4 - 2,
-            dy: Math.random() * 4 - 2
-        });
+    }
+    // Ensure minimum velocity for dx and dy
+    if (Math.abs(items[items.length - 1].dx) < 0.5) {
+        items[items.length - 1].dx = (items[items.length - 1].dx < 0 ? -1 : 1) * 0.5;
+    }
+    if (Math.abs(items[items.length - 1].dy) < 0.5) {
+        items[items.length - 1].dy = (items[items.length - 1].dy < 0 ? -1 : 1) * 0.5;
     }
     gameLoop(ctx);
 }
@@ -53,10 +54,10 @@ else {
 }
 // Helper Functions
 function drawItems(ctx) {
-    ctx.font = "".concat(fontSize, "px Arial");
-    ctx.textBaseline = 'top'; // Add this line to set the baseline to 'top'
+    ctx.font = `${fontSize}px Arial`;
+    ctx.textBaseline = 'top';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    items.forEach(function (item) {
+    items.forEach((item) => {
         ctx.fillText(item.emoji, item.x, item.y);
     });
 }
@@ -74,12 +75,12 @@ function determineWinner(item1, item2) {
     }
 }
 function updatePositions(ctx) {
-    items.forEach(function (item) {
+    items.forEach((item) => {
         item.x += item.dx;
         item.y += item.dy;
         // Bounce off walls
         if (item.x <= 0) {
-            item.x = 0; // Adjust to stay within bounds
+            item.x = 0;
             item.dx *= -1;
         }
         else if (item.x + fontSize >= canvas.width) {
@@ -87,7 +88,7 @@ function updatePositions(ctx) {
             item.dx *= -1;
         }
         if (item.y <= 0) {
-            item.y = 0; // Adjust to stay within bounds
+            item.y = 0;
             item.dy *= -1;
         }
         else if (item.y + fontSize >= canvas.height) {
@@ -97,14 +98,14 @@ function updatePositions(ctx) {
     });
 }
 function checkCollisions() {
-    for (var i = 0; i < items.length; i++) {
-        for (var j = i + 1; j < items.length; j++) {
-            var item1 = items[i];
-            var item2 = items[j];
-            var distance = Math.sqrt(Math.pow(item1.x - item2.x, 2) + Math.pow(item1.y - item2.y, 2));
-            if (distance < 30) { // Collision detected
+    for (let i = 0; i < items.length; i++) {
+        for (let j = i + 1; j < items.length; j++) {
+            const item1 = items[i];
+            const item2 = items[j];
+            const distance = Math.sqrt(Math.pow(item1.x - item2.x, 2) + Math.pow(item1.y - item2.y, 2));
+            if (distance < fontSize) { // Collision detected
                 if (item1.type !== item2.type) {
-                    var winner = determineWinner(item1, item2);
+                    const winner = determineWinner(item1, item2);
                     if (winner !== 'tie') {
                         item1.type = winner.type;
                         item1.emoji = winner.emoji;
@@ -119,9 +120,9 @@ function checkCollisions() {
                     item2.dx = -item2.dx + (Math.random() - 0.5) * 0.5;
                     item2.dy = -item2.dy + (Math.random() - 0.5) * 0.5;
                     // Apply minimum separation force
-                    var overlap = 30 - distance; // How much they overlap
-                    var pushX = (item1.x - item2.x) / distance * overlap / 2;
-                    var pushY = (item1.y - item2.y) / distance * overlap / 2;
+                    const overlap = fontSize - distance; // How much they overlap
+                    const pushX = (item1.x - item2.x) / distance * overlap / 2;
+                    const pushY = (item1.y - item2.y) / distance * overlap / 2;
                     item1.x += pushX;
                     item1.y += pushY;
                     item2.x -= pushX;
@@ -132,18 +133,17 @@ function checkCollisions() {
     }
 }
 function checkForWinner() {
-    var firstType = items[0].type;
-    if (items.every(function (item) { return item.type === firstType; })) {
+    const firstType = items[0].type;
+    if (items.every(item => item.type === firstType)) {
         return firstType;
     }
     return null;
 }
-// Main Game Loop Function
 function gameLoop(ctx) {
     updatePositions(ctx);
     checkCollisions();
     drawItems(ctx);
-    var winner = checkForWinner();
+    const winner = checkForWinner();
     if (winner) {
         ctx.font = 'bold 50px Arial';
         ctx.fillStyle = 'black';
@@ -154,9 +154,9 @@ function gameLoop(ctx) {
         ctx.fillRect((canvas.width / 2) - 150, (canvas.height / 2) - 40, 300, 80);
         // Draw the winner text
         ctx.fillStyle = 'red';
-        ctx.fillText(" ".concat(winner.toUpperCase(), " WINS!"), canvas.width / 2, canvas.height / 2);
+        ctx.fillText(` ${winner.toUpperCase()} WINS!`, canvas.width / 2, canvas.height / 2);
     }
     else {
-        requestAnimationFrame(function () { return gameLoop(ctx); });
+        requestAnimationFrame(() => gameLoop(ctx));
     }
 }
